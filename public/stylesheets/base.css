@@ -1,0 +1,258 @@
+/*
+  title: base css
+*/
+
+
+/* =global elements
+--------------------------------------------- */
+body {
+  color: #999;
+  font: 14px/1.5em "Lucida Grande", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  width: 742px;
+  margin: 0 auto;
+}
+
+a:link, a:visited {
+  color: #3b5998;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a:hover, a:active {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------ */
+
+/* =header
+--------------------------------------------- */
+header {
+  border-bottom: 2px solid #e9e9e9;
+  font-size: 11px;
+  line-height: 36px;
+  position: relative;
+  padding: 9px 0 9px 0;
+  margin-bottom: 24px;
+}
+
+header #user {
+  width: 400px;
+  color: #656565;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 50px;
+  padding-left: 56px;
+  background-repeat: no-repeat;
+  background-position: left center;
+}
+header #action {
+display: block;
+  position: absolute;
+  right: 6px;
+  top: 21px;
+}
+
+/* ------------------------------------------ */
+
+/* =buttons
+--------------------------------------------- */
+.facebook-button, .facebook-button:link, .facebook-button:visited {
+  background-color: #eee;
+  background-image: -moz-linear-gradient(top, #fdfdfd, #eaebeb);
+  background-image: -ms-linear-gradient(top, #fdfdfd, #eaebeb);
+  background-image: -o-linear-gradient(top, #fdfdfd, #eaebeb));
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#fdfdfd), to(#eaebeb));
+  background-image: -webkit-linear-gradient(top, #fdfdfd, #eaebeb);
+  background-image: linear-gradient(top, #fdfdfd, #eaebeb);
+  border: 1px solid #a9a9a9;
+  -moz-box-shadow: 0 1px 0 rgba(0, 0, 0, .1);
+  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, .1);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .1);
+  color: #4f4f4f;
+  display: -moz-inline-box;
+  display: inline-block;
+  font-family: 'Lucida Grande', Tahoma, Verdana, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 20px;
+  margin: 0;
+  outline: none;
+  text-decoration: none;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, .33);
+}
+
+.facebook-button span {
+  background: url("../images/sprites.png") no-repeat;
+  padding: 0 7px 0 21px;
+}
+
+.facebook-button .speech-bubble {
+  background-position: 6px 3px;
+}
+
+.facebook-button .plus {
+  background-position: 6px -17px;
+}
+.facebook-button .vote-button, .facebook-button .voted-button {
+  background: url("../images/sprite-check.png") no-repeat;
+  background-position: 0 -5px;
+  padding: 0 7px 0 21px;
+  pointer-events: none;
+  cursor: default;
+}
+.facebook-button .voted-button {
+  background-position: 0 -29px;
+  color: #009E7E;
+}
+
+.button:link, .button:visited {
+  background-color: #7a90c0;
+  background-image: -moz-linear-gradient(top, #97afe2, #6073a1);
+  background-image: -ms-linear-gradient(top, #97afe2, #6073a1);
+  background-image: -o-linear-gradient(top, #97afe2, #6073a1);
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#97afe2), to(#6073a1));
+  background-image: -webkit-linear-gradient(top, #97afe2, #6073a1);
+  background-image: linear-gradient(top, #97afe2, #6073a1);
+  border: none;
+  -moz-border-radius: 30px;
+  -webkit-border-radius: 30px;
+  border-radius: 30px;
+  -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, .5), 0 1px 1px rgba(255, 255, 255, .33) inset;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .5), 0 1px 1px rgba(255, 255, 255, .33) inset;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .5), 0 1px 1px rgba(255, 255, 255, .33) inset;
+  color: #1d222c;
+  display: inline-block;
+  font: bold 14px "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+  line-height: 32px;
+  padding: 0 25px;
+  text-decoration: none;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, .2);
+}
+/* ------------------------------------------ */
+
+/* =charities
+--------------------------------------------- */
+
+#charities h1 {
+	color: #6762A6;
+	font-family: "CorbelRegular", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+	font-size: 24px;
+	padding-top: 9px;
+	padding-bottom: 28px;
+}
+
+/* ------------------------------------------ */
+
+/* =clearfix
+--------------------------------------------- */
+.clearfix:after {
+  clear: both;
+  content: ".";
+  display: block;
+  font-size: 0;
+  height: 0;
+  line-height: 0;
+  visibility: hidden;
+}
+
+.clearfix {
+  zoom: 1;
+}
+
+/* ------------------------------------------ */
+
+/* =charities
+--------------------------------------------- */
+#charities {
+  text-align:center;
+  padding:  0;
+  padding-bottom: 24px;
+}
+
+#charities ul {
+	padding: 0;
+}
+
+#charities li {
+  float: left;
+  width: 228px;
+  margin-left: 24px;
+  background: #F2F3F3;
+  border: 1px solid #b3b3b3;
+  text-align: center;
+  padding-bottom: 24px;
+  border-radius: 4px;
+}
+#charities ul li:first-child {
+	margin-left: 0;
+}
+.charity .logo {
+  display: block;
+  margin-bottom: 9px;
+  width: 220px;
+  height: 160px;
+}
+.charity nav .votes {
+	font-size: 28px;
+	font-family: "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+	margin-bottom: 9px;
+}
+.charity nav .votes small {
+	font-size: 20px;
+	font-family: "CorbelRegular", "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif;
+}
+.charity nav .vote-button {
+	opacity: .6;
+	pointer-events: none;
+	cursor: default;
+}
+.charity nav .vote-button.enabled {
+	opacity: 1;
+	pointer-events: auto;
+	cursor: pointer;
+}
+.charity nav .share-button {
+	display: none;
+}
+.charity nav .share-button.enabled {
+	display: inline-block;
+	
+}
+
+/* ------------------------------------------ */
+
+/* =votes
+--------------------------------------------- */
+
+#votes h3 {
+	display: block;
+	float: left;
+	width: 230px;
+	text-align: center;
+	font-size: 11px;
+	font-weight: bold !important;
+	font: 11px "Lucida Grande", Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	color: #fff;
+	background-color: #6762A6;
+	line-height: 36px;
+}
+#votes ul {
+	display:  inline-block;
+}
+#votes li {
+	background-color: #F2F3F3;
+	width: 36px;
+	height: 36px;
+	margin-left: 10px;
+	float: left;
+}
+#votes li:first-child {
+	margin-left: 12px;
+}
+#votes li img {
+	width: 36px;
+	height: 36px;
+}

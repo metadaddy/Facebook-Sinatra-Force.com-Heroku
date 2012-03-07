@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <title><%= @app.name %></title>
+    <link rel="stylesheet" href="/stylesheets/screen.css" media="screen">
+
+    <!-- These are Open Graph tags.  They add meta data to your  -->
+    <!-- site that facebook uses when your content is shared     -->
+    <!-- over facebook.  You should fill these tags in with      -->
+    <!-- your data.  To learn more about Open Graph, visit       -->
+    <!-- 'https://developers.facebook.com/docs/opengraph/'       -->
+    
+    <!-- Charities pulled from cache = <%= @charities_from_cache.to_s %>-->
+    <meta property="og:title" content=""/>
+    <meta property="og:type" content=""/>
+    <meta property="og:url" content=""/>
+    <meta property="og:image" content=""/>
+    <meta property="og:site_name" content=""/>
+    <meta property="fb:app_id" content="<%= @app.id %>" />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"</script>
+    <script>
+
+    </script>
+    <!--[if IE]>
+      <script>
+        var tags = ['header', 'section'];
+        while(tags.length)
+          document.createElement(tags.pop());
+      </script>
+    <![endif]-->
+  </head>
+  <body>
+    <header class="clearfix">
+      <p id="user" style="background-image: url(https://graph.facebook.com/me/picture?access_token=<%= @client.access_token %>)" />
+        Welcome, <strong><%= @user.name %></strong>
+      </p>
+        <a id="action" href="#" class="facebook-button" onclick="popup('<%= post_to_wall_url %>', 'Post to Wall', 580, 400);">
+          <span class="plus">Post to Wall</span>
+        </a>
+    </header>
+
+    <section id="charities" class="clearfix">
+      <h3><a href="http://heroku.com"><img src="/images/logo-heroku.png" alt="heroku" border="0" /></a></h3>
+      <h1>Vote for a charity donation at Cloudstock</h1>
+      <ul>
+        <% @charities.each do |charity| %>
+          <li class="charity" data-id="<%= charity['Id'] %>" data-name="<%= charity['Name'] %>">
+            <a class="logo" href="<%= charity['URL__c'] %>" title="<%= charity['Id'] %>" style="background: url(<%= charity['Logo_URL__c'] %>) no-repeat center center">
+            </a>
+            <nav>
+              <p class="votes">
+                <%= @vote_counts[charity['Id']].to_s %>
+                <small><%= ((@vote_counts[charity['Id']] == 1) ? ' vote' : ' votes') %></small>
+              </p>
+              <% if @voted && @voted.charity_id == charity['Id'] %>
+                <a href="#" class="facebook-button voted-button<%= ' enabled' unless @voted %>">
+                  <span class="voted-button">
+                    Voted
+                  </span>
+                </a>
+              <% else %>
+                <a href="#" class="facebook-button vote-button<%= ' enabled' unless @voted %>">
+                  <span class="vote-button">
+                    Vote
+                  </span>
+                </a>
+              <% end %>
+              <a href="#" class="facebook-button speech-bubble share-button<%= ' enabled' if @voted && @voted.charity_id == charity['Name'] %>" onclick="popup('<%= send_to_friends_url(charity) %>', 'Send', 580, 400);">
+                <span class="speech-bubble">Share with Friends</span>
+              </a>
+            </nav>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+
+    <section id="votes" class="clearfix">
+      <h3><%= [@vote_total.to_s, ((@vote_total == 1) ? 'vote' : 'votes')].join(' ') %>, from people including:</h3>
+      <ul class="photos clearfix">
+        <% @votes.each do |vote| %>
+          <li>
+            <a href="#" onclick="window.open('http://www.facebook.com/<%= vote.user_id %>')">
+              <img src="https://graph.facebook.com/<%= vote.user_id %>/picture" />
+            </a>
+          </li>
+        <% end %>
+        <% if @votes.count < 11 %>
+          <% (11 - @votes.count).times do %>
+            <li></li>
+          <% end %>
+        <% end %>
+      </ul>
+    </section>
+
+    <script type="application/javascript">
+      function popup(pageURL, title,w,h) {
+        var left = (screen.width/2)-(w/2);
+        var top = (screen.height/2)-(h/2);
+        var targetWin = window.open(
+          pageURL,
+          title,
+          'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width='+w+', height='+h+', top='+top+', left='+left
+          );
+      }
+
+      $(document).ready(function(){
+        $('.vote-button.enabled').live('click', function(event){
+          event.preventDefault();
+          var charity = $(this).parents('.charity');
+          $.post('/vote', { charity_id: charity.attr('data-id') }, function(data) {
+            if (data.success) {
+              // Disable the vote buttons
+              $('.vote-button').each(function(){
+                $(this).removeClass('enabled');
+              });
+
+              // Enable the share button
+              $('.share-button', charity).addClass('enabled');
+
+              // Change the vote button to 'voted'
+              $('.vote-button', charity)
+                .html('<span class="voted-button">Voted</span>')
+                .removeClass('vote-button').addClass('voted-button');
+
+              // Update the vote counts
+              for (var key in data.vote_counts) {
+                $('.charity[data-id=' + key + '] .votes').html(data.vote_counts[key] + ' votes');
+              }
+            } else {
+              alert("Oops! There was a problem registering your vote.\nPlease try again later!");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
