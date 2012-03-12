@@ -6,6 +6,7 @@ require "dalli"
 $stdout.sync = true
 
 enable :sessions
+set :session_secret, ENV['SESSION_KEY'] || 'a super secret session key'
 set :raise_errors, false
 set :show_exceptions, false
 
