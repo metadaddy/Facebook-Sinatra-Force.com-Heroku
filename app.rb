@@ -126,7 +126,7 @@ helpers do
       "redirect_uri=#{url("/close")}",
     "&display=popup",
     "&app_id=#{@app.id}",
-    "&name=#{URI.escape("Heroku FOWA Charity Vote")}",
+    "&name=#{URI.escape("Heroku Cloudstock Charity Vote")}",
     "&picture=#{URI.escape(url('/' + charity['Logo_URL__c']))}",
     "&caption=#{URI.escape("I voted for #{charity['Name']}!")}",
     "&description=#{URI.escape("Your vote counts too. Vote for a charity donation by Heroku at Cloudstock.")}",
