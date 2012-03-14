@@ -60,16 +60,14 @@ GEM
       multipart-post (~> 1.1)
       rack (~> 1.1)
     fastercsv (1.5.4)
-    hashie (1.1.0)
     httparty (0.7.8)
       crack (= 0.1.8)
     json (1.5.4)
     json_pure (1.5.4)
       spruz (~> 0.2.8)
-    mogli (0.0.32)
-      hashie (~> 1.1.0)
-      httparty (>= 0.4.3)
-      multi_json (~> 1.0.3)
+    koala (1.3.0)
+      faraday (~> 0.7.0)
+      multi_json (~> 1.0)
     multi_json (1.0.3)
     multipart-post (1.1.5)
     oauth2 (0.5.2)
@@ -97,7 +95,7 @@ DEPENDENCIES
   dm-postgres-adapter
   httparty
   json
-  mogli
+  koala
   oauth2
   sinatra
   thin

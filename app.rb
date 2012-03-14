@@ -1,5 +1,5 @@
 require "sinatra"
-require "mogli"
+require 'koala'
 require "oauth2"
 require "dalli"
 
@@ -77,17 +77,19 @@ before do
   if settings.environment == :production && request.scheme != 'https'
     redirect "https://#{request.env['HTTP_HOST']}"
   end
-  
   # STAGE 3: Protect all non-auth, non-services URLs
   unless request.path =~ /^\/auth/ || request.path =~ /^\/charity/
     # Facebook session redirect
-    redirect "/auth/facebook" unless session[:at]
+    redirect "/auth/facebook" unless session[:access_token]
 
-    @client = Mogli::Client.new(session[:at])
-    puts "Created @client"
+    # Get base API Connection
+    @graph  = Koala::Facebook::API.new(session[:access_token])
     
-    @app  = Mogli::Application.find(ENV["FACEBOOK_APP_ID"], @client)
-    @user = Mogli::User.find("me", @client)
+    # Get the user object    
+    @user    = @graph.get_object("me")
+    
+    # Get public details of current application
+    @app  =  @graph.get_object(ENV["FACEBOOK_APP_ID"])
   end
   
   # STAGE 1: Set up the Force.com OAuth2 client
@@ -103,44 +105,31 @@ before do
 end
 
 helpers do
-  def url(path)
-    base = "#{request.scheme}://#{request.env['HTTP_HOST']}"
-    base + path
+  def host
+    request.env['HTTP_HOST']
   end
 
-  # STAGE 3: set additional fields in Facebook dialog calls
-  def post_to_wall_url
-    ["https://www.facebook.com/dialog/feed?",
-      "redirect_uri=#{url("/close")}",
-    "&display=popup",
-    "&app_id=#{@app.id}",
-    "&name=#{URI.escape("Heroku Cloudstock Charity Vote")}",
-    "&picture=#{URI.escape(url('/images/logo-heroku.png'))}",
-    "&caption=#{URI.escape("Vote for a charity donation")}",
-    "&description=#{URI.escape("Your vote counts too. Vote for a charity donation by Heroku at Cloudstock.")}",
-    "&link=#{url('/')}"].join
+  def scheme
+    request.scheme
   end
 
-  def send_to_friends_url(charity)
-    ["https://www.facebook.com/dialog/feed?",
-      "redirect_uri=#{url("/close")}",
-    "&display=popup",
-    "&app_id=#{@app.id}",
-    "&name=#{URI.escape("Heroku Cloudstock Charity Vote")}",
-    "&picture=#{URI.escape(url('/' + charity['Logo_URL__c']))}",
-    "&caption=#{URI.escape("I voted for #{charity['Name']}!")}",
-    "&description=#{URI.escape("Your vote counts too. Vote for a charity donation by Heroku at Cloudstock.")}",
-    "&link=#{url('/')}"].join
+  def url_no_scheme(path = '')
+    "//#{host}#{path}"
+  end
+
+  def url(path = '')
+    "#{scheme}://#{host}#{path}"
   end
 
   def authenticator
-    @authenticator ||= Mogli::Authenticator.new(ENV["FACEBOOK_APP_ID"], ENV["FACEBOOK_SECRET"], url("/auth/facebook/callback"))
+    @authenticator ||= Koala::Facebook::OAuth.new(ENV["FACEBOOK_APP_ID"], ENV["FACEBOOK_SECRET"], url("/auth/facebook/callback"))
   end
+
 end
 
 # the facebook session expired! reset ours and restart the process
-error(Mogli::Client::HTTPException) do
-  session[:at] = nil
+error(Koala::Facebook::APIError) do
+  session[:access_token] = nil
   redirect "/auth/facebook"
 end
 
@@ -155,19 +144,25 @@ error(OAuth2::Error) do
 end
 
 get "/" do
-  # limit queries to 15 results
-  @client.default_params[:limit] = 15
+  if session[:access_token]
+    @friends = @graph.get_connections('me', 'friends')
+    @photos  = @graph.get_connections('me', 'photos')
+    @likes   = @graph.get_connections('me', 'likes').first(4)
 
-  # STAGE 1: Get list of charities
-  @charities = charities
+    # for other data you can always run fql
+    @friends_using_app = @graph.fql_query("SELECT uid, name, is_app_user, pic_square FROM user WHERE uid in (SELECT uid2 FROM friend WHERE uid1 = me()) AND is_app_user = 1")
 
-  # STAGE 3: Manage voting
-  @vote_counts = vote_counts
+    # STAGE 1: Get list of charities
+    @charities = charities
 
-  @voted = Vote.first(:user_id => @user.id)
+    # STAGE 3: Manage voting
+    @vote_counts = vote_counts
 
-  @votes = Vote.all(:order => :created_at.desc, :limit => 11)
-  @vote_total = Vote.count
+    @voted = Vote.first(:user_id => @user['id'])
+
+    @votes = Vote.all(:order => :created_at.desc, :limit => 11)
+    @vote_total = Vote.count
+  end
 
   erb :index
 end
@@ -181,7 +176,7 @@ end
 post '/vote' do
   begin
     vote = Vote.create(
-      :user_id => @user.id,
+      :user_id => @user['id'],
       :charity_id => charity(params[:charity_id])['Id']
     )
     success = vote.save
@@ -198,15 +193,19 @@ get "/close" do
   "<body onload='window.close();'/>"
 end
 
+get "/sign_out" do
+  session[:access_token] = nil
+  redirect '/'
+end
+
 get "/auth/facebook" do
-  session[:at]=nil
-  redirect authenticator.authorize_url(:scope => FACEBOOK_SCOPE, :display => 'page')
+  session[:access_token] = nil
+  redirect authenticator.url_for_oauth_code(:permissions => FACEBOOK_SCOPE)
 end
 
 get '/auth/facebook/callback' do
-  client = Mogli::Client.create_from_code_and_authenticator(params[:code], authenticator)
-  session[:at] = client.access_token
-  redirect '/'
+	session[:access_token] = authenticator.get_access_token(params[:code])
+	redirect '/'
 end
 
 # STAGE 2: Flush charity cache
@@ -228,19 +227,14 @@ end
 
 def charities
   # STAGE 2: Cache charities
-  # Could just use @charities ||= dalli_client.get(CHARITIES_KEY), but we want
-  # to explicitly show when we're using Memcache and when we're going to 
-  # Force.com
-  unless @charities
-    @charities = dalli_client.get(CHARITIES_KEY)
-    if @charities
-      puts "***** Charities request served from Memcache"
-    else
-      puts "***** Querying Force.com for charities"
-      query = "SELECT Id, Name, Logo_URL__c, URL__c from Charity__c ORDER BY Name"
-      @charities = force_token.get("#{force_token.params['instance_url']}/services/data/v24.0/query/?q=#{CGI::escape(query)}").parsed['records']
-      dalli_client.set(CHARITIES_KEY, @charities)
-    end
+  @charities ||= dalli_client.get(CHARITIES_KEY)
+  if @charities
+    puts "***** Charities request served from memcache"
+  else
+    puts "***** Querying Force.com for charities"
+    query = "SELECT Id, Name, Logo_URL__c, URL__c from Charity__c ORDER BY Name"
+    @charities = force_token.get("#{force_token.params['instance_url']}/services/data/v24.0/query/?q=#{CGI::escape(query)}").parsed['records']
+    dalli_client.set(CHARITIES_KEY, @charities)
   end
   @charities
 end

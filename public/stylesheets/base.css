@@ -47,7 +47,7 @@ header #user {
   background-repeat: no-repeat;
   background-position: left center;
 }
-header #action {
+header #postToWall {
 display: block;
   position: absolute;
   right: 6px;
