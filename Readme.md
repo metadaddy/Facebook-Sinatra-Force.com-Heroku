@@ -3,7 +3,7 @@ Facebook/Force.com/Heroku sample app -- Ruby
 
 This is a sample Facebook app showing use of the Force.com REST API, written in Ruby, designed for deployment to [Heroku](http://www.heroku.com/).
 
-This app was shown at my Cloudstock 2012 session 'Create a Force.com-Powered Facebook App on Heroku'. [Presentation slides](https://github.com/metadaddy-sfdc/Facebook-Sinatra-Force.com-Heroku/blob/master/CS12_Heroku_Facebook.pdf).
+This app was shown at my Cloudstock 2012 session 'Create a Force.com-Powered Facebook App on Heroku'. [Presentation slides](https://github.com/metadaddy-sfdc/Facebook-Sinatra-Force.com-Heroku/blob/master/CS12_Heroku_Facebook.pdf?raw=true).
 
 Run locally
 -----------
