@@ -1,10 +1,12 @@
-source :gemcutter
+source 'https://rubygems.org'
 
 gem "sinatra"
 gem "koala"
-gem "json"
+gem "json", "1.5.5"
 gem "httparty"
 gem "thin"
+gem "rack", "1.3.10"
+gem "memcachier"
 
 # STAGE 1
 gem 'oauth2'

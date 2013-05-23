@@ -2,6 +2,7 @@ require "sinatra"
 require 'koala'
 require "oauth2"
 require "dalli"
+require 'memcachier'
 
 $stdout.sync = true
 
@@ -42,7 +43,7 @@ INSTANCE_URL_KEY = 'instance_url'
 # permissions your app needs.
 # See https://developers.facebook.com/docs/reference/api/permissions/
 # for a full list of permissions
-FACEBOOK_SCOPE = 'user_likes,user_photos,user_photo_video_tags'
+FACEBOOK_SCOPE = 'user_likes,user_photos'
 
 unless ENV["FACEBOOK_APP_ID"] && ENV["FACEBOOK_SECRET"]
   abort("missing env vars: please set FACEBOOK_APP_ID and FACEBOOK_SECRET with your app credentials")
@@ -124,6 +125,17 @@ helpers do
   def authenticator
     @authenticator ||= Koala::Facebook::OAuth.new(ENV["FACEBOOK_APP_ID"], ENV["FACEBOOK_SECRET"], url("/auth/facebook/callback"))
   end
+  
+  # allow for javascript authentication
+  def access_token_from_cookie
+    authenticator.get_user_info_from_cookies(request.cookies)['access_token']
+  rescue => err
+    warn err.message
+  end
+
+  def access_token
+    session[:access_token] || access_token_from_cookie
+  end
 
 end
 
@@ -144,7 +156,7 @@ error(OAuth2::Error) do
 end
 
 get "/" do
-  if session[:access_token]
+  if access_token
     @friends = @graph.get_connections('me', 'friends')
     @photos  = @graph.get_connections('me', 'photos')
     @likes   = @graph.get_connections('me', 'likes').first(4)
@@ -193,11 +205,14 @@ get "/close" do
   "<body onload='window.close();'/>"
 end
 
-get "/sign_out" do
+# Doesn't actually sign out permanently, but good for testing
+get "/preview/logged_out" do
   session[:access_token] = nil
+  request.cookies.keys.each { |key, value| response.set_cookie(key, '') }
   redirect '/'
 end
 
+# Allows for direct oauth authentication
 get "/auth/facebook" do
   session[:access_token] = nil
   redirect authenticator.url_for_oauth_code(:permissions => FACEBOOK_SCOPE)

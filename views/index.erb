@@ -214,9 +214,8 @@
     <% else %>
       <div>
         <h1>Welcome to the Cloudstock 2012 Heroku Charity App</h1>
-          <a href='/auth/facebook' class="fb_button fb_button_medium">
-            <span class="fb_button_text">Log In</span>
-          </a>
+        <div class="fb-login-button" data-scope="<%= FACEBOOK_SCOPE %>">Log In</div>
+
       </div>
     <% end %>
 
